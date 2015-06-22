@@ -1,0 +1,7 @@
+[package]
+name = "gametheory"
+version = "0.1.0"
+authors = ["Mark Egesdal <megesdal@gmail.com>"]
+
+[dependencies]
+num = "*"
