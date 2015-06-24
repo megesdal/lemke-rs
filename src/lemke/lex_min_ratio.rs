@@ -20,7 +20,6 @@ use num::traits::Signed;
  */
 pub fn lexminratio(tableau: &Tableau, vars: &TableauVariables, enter: &TableauVariable) -> (TableauVariable, bool) {
 
-	let mut z0leave = false;
 	let mut leave_candidate_rows = Vec::new();
 
 	if vars.is_basic(&enter) {
@@ -47,7 +46,7 @@ pub fn lexminratio(tableau: &Tableau, vars: &TableauVariables, enter: &TableauVa
 
 	let z0_can_leave = process_candidates(tableau, vars, enter_col, &mut leave_candidate_rows);
 
-	(vars.from_row(leave_candidate_rows[0]), z0leave)
+	(vars.from_row(leave_candidate_rows[0]), z0_can_leave)
 }
 
 /*

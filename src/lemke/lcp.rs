@@ -9,6 +9,8 @@ use super::tableau::Tableau;
 use super::tableau_vars::{TableauVariable,TableauVariables};
 use super::lex_min_ratio::lexminratio;
 
+#[cfg(test)] use num::traits::{FromPrimitive,ToPrimitive};
+
 // LCP (aka. Linear Complementarity Problem)
 // =============================================================================
 // (1) Mz + q >= 0
@@ -203,7 +205,7 @@ fn lemke_with_pivot_max(m: Vec<BigRational>, q: Vec<BigRational>, d: Vec<BigRati
 	loop {
 
 		//log.Printf("%d LCP:\n%v", pivotCount, lcp)
-		//log.Println(pivotCount, "entering", lcp.var2str(enter), "leaving", lcp.var2str(leave))
+		println!("{}. entering: {}, leaving: {}", pivot_count, enter.to_string(), leave.to_string());
 
 		lcp.vars.pivot(&mut lcp.tableau, &leave, &enter);
 		//TODO: if err != nil {
@@ -223,6 +225,7 @@ fn lemke_with_pivot_max(m: Vec<BigRational>, q: Vec<BigRational>, d: Vec<BigRati
 		let (next_leave, next_z0_can_leave) = lexminratio(&lcp.tableau, &lcp.vars, &enter);
         leave = next_leave;
         z0_can_leave = next_z0_can_leave;
+        println!("z0 can leave: {} -> leave: {}", z0_can_leave, leave.to_string());
 		//TODO: if err != nil {
 		//	break
 		//}
@@ -237,4 +240,47 @@ fn lemke_with_pivot_max(m: Vec<BigRational>, q: Vec<BigRational>, d: Vec<BigRati
 
 	//log.Printf("LCP (final):\n%v", lcp)
 	lcp.vars.solution(&lcp.tableau, &lcp.scale_factors) // LCP solution = z  vector
+}
+
+#[cfg(test)]
+fn into_bigrats(ints: Vec<i64>) -> Vec<BigRational> {
+    ints.into_iter()
+        .map(|val| { Ratio::from_integer(BigInt::from_i64(val).unwrap()) })
+        .collect()
+}
+
+#[test]
+fn lemke2() {
+
+	let m = into_bigrats(vec![2, 1, 1, 3]);
+	let q = into_bigrats(vec![-1, -1]);
+	let d = into_bigrats(vec![2, 1]);
+
+	let z = lemke(m, q, d);
+
+	assert_eq!(2, z.len());
+	assert_eq!(false, z[0].is_integer());
+	assert_eq!(2, z[0].numer().to_i64().unwrap());
+	assert_eq!(5, z[0].denom().to_i64().unwrap());
+	assert_eq!(false, z[1].is_integer());
+	assert_eq!(1, z[1].numer().to_i64().unwrap());
+	assert_eq!(5, z[1].denom().to_i64().unwrap());
+}
+
+#[test]
+fn lemke3() {
+
+	let m = into_bigrats(vec![0, -1, 2, 2, 0, -2, -1, 1, 0]);
+	let q = into_bigrats(vec![-3, 6, -1]);
+	let d = into_bigrats(vec![1, 1, 1]);
+
+	let z = lemke(m, q, d);
+
+	assert_eq!(3, z.len());
+	assert_eq!(true, z[0].is_integer());
+	assert_eq!(0, z[0].numer().to_i64().unwrap());
+	assert_eq!(true, z[1].is_integer());
+	assert_eq!(1, z[1].numer().to_i64().unwrap());
+	assert_eq!(true, z[2].is_integer());
+	assert_eq!(3, z[2].numer().to_i64().unwrap());
 }

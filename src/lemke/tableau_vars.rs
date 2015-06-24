@@ -188,7 +188,7 @@ impl TableauVariables {
      pub fn solution(&self, tableau: &Tableau, scale_factors: &Vec<BigInt>) -> Vec<BigRational> {
 
      	let mut z = Vec::with_capacity(self.n);
-     	for i in 1..self.n {
+     	for i in 1..self.n + 1 {
      		z.push(self.result(tableau, scale_factors, &self.z(i)))
      	}
      	z
