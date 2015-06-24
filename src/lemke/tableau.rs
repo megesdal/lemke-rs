@@ -9,11 +9,11 @@ pub struct Tableau {
     values: Vec<BigInt>,
     pub ncols: usize,
     pub nrows: usize,
-    determinant: BigInt,
+    pub determinant: BigInt,
 }
 
 impl Tableau {
-    pub fn new(ncols: usize, nrows: usize) -> Tableau {
+    pub fn new(nrows: usize, ncols: usize) -> Tableau {
         Tableau {
             values: vec![BigInt::zero(); ncols * nrows],
             ncols: ncols,
@@ -26,11 +26,11 @@ impl Tableau {
         self.values[row * self.ncols + col] = value;
     }
 
-    fn entry(&self, row: usize, col: usize) -> &BigInt {
+    pub fn entry(&self, row: usize, col: usize) -> &BigInt {
         &self.values[row * self.ncols + col]
     }
 
-    fn pivot(&mut self, row: usize, col: usize) {
+    pub fn pivot(&mut self, row: usize, col: usize) {
 
     	let pivelt = self.entry(row, col).clone(); /* pivelt anyhow later new determinant  */
 
@@ -81,7 +81,7 @@ impl Tableau {
     	}
     }
 
-    fn negate_col(&mut self, col: usize) {
+    pub fn negate_col(&mut self, col: usize) {
     	for i in 0..self.nrows {
     		let neg_entry = self.entry(i, col).neg();
     		self.set(i, col, neg_entry);
@@ -90,7 +90,7 @@ impl Tableau {
 
     // sign of  A[a,testcol] / A[a,col] - A[b,testcol] / A[b,col]
     // (assumes only positive entries of col are considered)
-    fn ratio_test(&self, rowa: usize, rowb: usize, cola: usize, colb: usize) -> Ordering {
+    pub fn ratio_test(&self, rowa: usize, rowb: usize, cola: usize, colb: usize) -> Ordering {
     	let a = self.entry(rowa, colb).mul(self.entry(rowb, cola));
     	let b = self.entry(rowb, colb).mul(self.entry(rowa, cola));
     	a.cmp(&b)
@@ -100,7 +100,7 @@ impl Tableau {
 #[test]
 fn set_and_get_works() {
 
-    let mut a = Tableau::new(5, 2);
+    let mut a = Tableau::new(2, 5);
     a.set(0, 0, BigInt::from_i32(2).unwrap());
     a.set(0, 1, BigInt::from_i32(2).unwrap());
     a.set(0, 2, BigInt::from_i32(1).unwrap());
