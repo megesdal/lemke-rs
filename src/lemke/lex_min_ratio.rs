@@ -68,7 +68,7 @@ fn process_candidates(tableau: &Tableau, vars: &TableauVariables, enter_col: usi
 
 		let wj = vars.w(j);
 		if vars.is_basic(&wj) { /* testcol < 0: W(j) basic, Eliminate its row from leavecand */
-			let removed = leave_candidate_rows.swap_remove(vars.to_row(&wj));
+			let removed = remove_row(leave_candidate_rows, vars.to_row(&wj));
 		} else { // not a basic testcolumn: perform minimum ratio tests
 			let test_col = vars.to_col(&wj); /* since testcol is the  jth  unit column                    */
 			if test_col != enter_col {   /* otherwise nothing will change */
@@ -79,6 +79,20 @@ fn process_candidates(tableau: &Tableau, vars: &TableauVariables, enter_col: usi
 	}
 
 	z0_can_leave
+}
+
+fn remove_row(leave_candidate_rows: &mut Vec<usize>, row_to_rm: usize) {
+	let rm_idx = {
+		let mut idx = 0;
+		for row in leave_candidate_rows.iter() {
+			if *row == row_to_rm {
+				break;
+			}
+			idx += 1;
+		}
+		idx
+	};
+	leave_candidate_rows.swap_remove(rm_idx);
 }
 
 fn process_rhs(tableau: &Tableau, vars: &TableauVariables, enter_col: usize, leave_candidate_rows: &mut Vec<usize>) -> bool {
