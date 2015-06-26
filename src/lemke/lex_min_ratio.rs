@@ -68,7 +68,7 @@ fn process_candidates(tableau: &Tableau, vars: &TableauVariables, enter_col: usi
 
 		let wj = vars.w(j);
 		if vars.is_basic(&wj) { /* testcol < 0: W(j) basic, Eliminate its row from leavecand */
-			let removed = remove_row(leave_candidate_rows, vars.to_row(&wj));
+			remove_row(leave_candidate_rows, vars.to_row(&wj));
 		} else { // not a basic testcolumn: perform minimum ratio tests
 			let test_col = vars.to_col(&wj); /* since testcol is the  jth  unit column                    */
 			if test_col != enter_col {   /* otherwise nothing will change */
