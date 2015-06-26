@@ -32,11 +32,13 @@ impl Tableau {
 
     pub fn pivot(&mut self, row: usize, col: usize) {
 
-    	let pivelt = self.entry(row, col).clone(); /* pivelt anyhow later new determinant  */
-
-    	if pivelt.is_zero() {
-    		panic!("Trying to pivot on a zero");
-    	}
+    	let (entry_row_col_abs, negpivot) = {
+            let entry_row_col = self.entry(row, col);
+            if entry_row_col.is_zero() {
+                panic!("Trying to pivot on a zero");
+            }
+            (entry_row_col.abs(), entry_row_col.is_negative())
+        }; /* pivelt anyhow later new determinant  */
 
         let cur_det = self.determinant.clone();
     	for i in 0..self.nrows {
@@ -46,19 +48,19 @@ impl Tableau {
     				if j != col {  // A[..][col] remains unchanged
 
     					//A[i,j] = (A[i,j] A[row,col] - A[i,col] A[row,j]) / det
-    					let mut tmp1 = pivelt.abs().mul(self.entry(i, j));
+    					let mut tmp1 = self.entry(i, j).mul(&entry_row_col_abs);
     					if nonzero {
-    						let tmp2 = self.entry(i, col).mul(self.entry(row, j));
-    						if pivelt.is_negative() {
-    							tmp1 = tmp1.add(tmp2);
+    						let tmp2 = self.entry(row, j).mul(self.entry(i, col));
+    						tmp1 = if negpivot {
+    							tmp1.add(tmp2)
     						} else {
-    							tmp1 = tmp1.sub(tmp2);
-    						}
+    							tmp1.sub(tmp2)
+    						};
     					}
     					self.set(i, j, tmp1.div(&cur_det));
     				}
     			}
-    			if nonzero && !pivelt.is_negative() {
+    			if nonzero && !negpivot {
     				// row  i  has been dealt with, update  A[i][col] safely
                     let neg_entry = self.entry(i, col).neg();
     				self.set(i, col, neg_entry);
@@ -67,11 +69,11 @@ impl Tableau {
     	}
 
         self.set(row, col, cur_det);
-    	if pivelt.is_negative() {
+    	if negpivot {
     		self.negate_row(row);
     	}
 
-    	self.determinant = pivelt; //by construction always positive
+    	self.determinant = entry_row_col_abs; //by construction always positive
     }
 
     fn negate_row(&mut self, row: usize) {

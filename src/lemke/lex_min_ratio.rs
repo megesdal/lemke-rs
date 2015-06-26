@@ -201,6 +201,7 @@ fn lexminvar_works() {
 	//assert.Equal(t, "Variable w2 is already in basis. Must be cobasic to enter.", err.Error())
 }
 
+/*
 #[test]
 fn lexninvar_on_large_tableau_works() {
 
@@ -231,5 +232,6 @@ fn lexninvar_on_large_tableau_works() {
 		assert_eq!(false, z0_can_leave);
 	}
 
-	println!("1000 lexmin took: {}", time::now() - start);
+	panic!("1000 lexmin took: {}", time::now() - start);
 }
+*/

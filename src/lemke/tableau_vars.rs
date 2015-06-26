@@ -3,7 +3,7 @@ use num::rational::{Ratio,BigRational};
 use num::traits::{One,Zero};
 
 use std::fmt::{Formatter,Debug,Error};
-use std::ops::{Div,Rem,Mul};
+use std::ops::Mul;
 
 use super::tableau::Tableau;
 
@@ -176,7 +176,6 @@ impl TableauVariables {
      	}
 
      	let (row, col) = self.swap(enter, leave);  // update tableau variables
-     	println!("pivoting ({},{})", row, col);
      	tableau.pivot(row, col)
      }
 

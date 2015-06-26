@@ -176,25 +176,20 @@ fn validate_inputs(q: &Vec<BigRational>, d: &Vec<BigRational>) {
 	}
 }
 
-
-// Lemke solves the linear complementarity probelm via Lemke's algorithm.
-// Returns nil with an error if ray termination
 fn lemke(m: Vec<BigRational>, q: Vec<BigRational>, d: Vec<BigRational>) -> Vec<BigRational> {
 	lemke_with_pivot_max(m, q, d, 0)
 }
 
 // LemkeWithPivotMax solves the linear complementarity probelm via Lemke's algorithm.
 // It will only perform up to maxCount pivots before exiting.
+// TODO: ray termination...
 fn lemke_with_pivot_max(m: Vec<BigRational>, q: Vec<BigRational>, d: Vec<BigRational>, pivot_max: usize) -> Vec<BigRational> {
 
 	validate_inputs(&q, &d);
 
+	// TODO: better way?
     let mut lcp = LCP::new(m, q);
 	lcp.add_covering_vector(d);
-
-	//nextLeavingVar := func(enter bascobas) (bascobas, bool, error) {
-	//	return lexminratio(lcp, enter)
-	//}
 
 	let mut enter = lcp.vars.z(0); // z0 enters the basis to obtain lex-feasible solution
 	let (mut leave, mut z0_can_leave) = lexminratio(&lcp.tableau, &lcp.vars, &enter);
@@ -204,42 +199,31 @@ fn lemke_with_pivot_max(m: Vec<BigRational>, q: Vec<BigRational>, d: Vec<BigRati
 	let mut pivot_count = 1;
 	loop {
 
-		//log.Printf("%d LCP:\n%v", pivotCount, lcp)
 		println!("{}. entering: {}, leaving: {}", pivot_count, enter.to_string(), leave.to_string());
 
 		lcp.vars.pivot(&mut lcp.tableau, &leave, &enter);
-		//TODO: if err != nil {
-		//	break
-		//}
 
 		if z0_can_leave {
 			break; // z0 will have a value of zero but may still be basic... amend?
 		}
 
-		// selectpivot
-		enter = leave.complement();
-		//TODO: if err != nil {
-		//	break
-		//}
+		enter = leave.complement();  // select pivot
 
+		// FIXME: better way?  Maybe rust will fix this...
 		let (next_leave, next_z0_can_leave) = lexminratio(&lcp.tableau, &lcp.vars, &enter);
         leave = next_leave;
         z0_can_leave = next_z0_can_leave;
-        println!("z0 can leave: {} -> leave: {}", z0_can_leave, leave.to_string());
-		//TODO: if err != nil {
-		//	break
-		//}
 
-		if pivot_count == pivot_max { /* maxcount == 0 is equivalent to infinity since pivotcount starts at 1 */
-			//log.warning(String.format("------- stop after %d pivoting steps --------", maxcount));
+		if pivot_count == pivot_max {
+			// maxcount == 0 is equivalent to infinity since pivotcount starts at 1
+			// TODO: negative result...
 			break;
 		}
 
 		pivot_count += 1;
 	}
 
-	//log.Printf("LCP (final):\n%v", lcp)
-	lcp.vars.solution(&lcp.tableau, &lcp.scale_factors) // LCP solution = z  vector
+	lcp.vars.solution(&lcp.tableau, &lcp.scale_factors)
 }
 
 #[cfg(test)]
