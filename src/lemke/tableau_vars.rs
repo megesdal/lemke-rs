@@ -197,26 +197,26 @@ impl TableauVariables {
       * Z(i):  scfa[i]*rhs[row] / (scfa[RHS]*det)
       * W(i):  rhs[row] / (scfa[RHS]*det)
       */
-     fn result(&self, tableau: &Tableau, scale_factors: &Vec<BigInt>, var: &TableauVariable) -> BigRational {
-     	if self.is_basic(var) {
+    fn result(&self, tableau: &Tableau, scale_factors: &Vec<BigInt>, var: &TableauVariable) -> BigRational {
+        if self.is_basic(var) {
 
             let one = BigInt::one();
+            let scale_factor = if var.is_z() {
+                &scale_factors[var.idx]
+            } else {
+                &one
+            };
+
             let row = self.to_row(var);
-     		let scale_factor = if var.is_z() {
-     			&scale_factors[row]
-     		} else {
-     			&one
-     		};
-
             let col = self.rhs_col();
-     		let numer = scale_factor.mul(tableau.entry(row, col));
-     		let denom = (&tableau.determinant).mul(&scale_factors[col]);
+            let numer = scale_factor.mul(tableau.entry(row, col));
+            let denom = (&tableau.determinant).mul(&scale_factors[col]);
 
-     		Ratio::new(numer, denom)
-     	} else {
-             BigRational::zero()
-         }
-     }
+            Ratio::new(numer, denom)
+        } else {
+            BigRational::zero()
+        }
+    }
 }
 
 #[test]

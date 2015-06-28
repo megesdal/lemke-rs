@@ -13,11 +13,11 @@ pub struct Tableau {
 }
 
 impl Tableau {
-    pub fn new(nrows: usize, ncols: usize) -> Tableau {
+    pub fn new(n: usize) -> Tableau {
         Tableau {
-            values: vec![BigInt::zero(); ncols * nrows],
-            ncols: ncols,
-            nrows: nrows,
+            values: vec![BigInt::zero(); (n + 2) * n],
+            ncols: n + 2,
+            nrows: n,
             determinant: BigInt::from_i32(-1).unwrap(),
         }
     }
