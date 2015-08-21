@@ -1,33 +1,36 @@
-use num::bigint::BigInt;
-use num::traits::{Zero,Signed,FromPrimitive};
+use num::traits::{One,Zero,Signed,FromPrimitive};
+use num::integer::Integer;
 
+use std::clone::Clone;
 use std::ops::{Neg,Mul,Sub,Add,Div};
 use std::cmp::Ordering;
 use std::vec::Vec;
 
-pub struct Tableau {
-    values: Vec<BigInt>,
+#[cfg(test)] use num::bigint::BigInt;
+
+pub struct Tableau<T: Integer+Signed> {
+    values: Vec<T>,
     pub ncols: usize,
     pub nrows: usize,
-    pub determinant: BigInt,
+    pub determinant: T,
 }
 
-impl Tableau {
-    pub fn new(n: usize) -> Tableau {
+impl<T: Integer+Signed> Tableau<T> {
+    pub fn new(n: usize) -> Tableau<T> {
         Tableau {
-            values: vec![BigInt::zero(); (n + 2) * n],
+            values: vec![T::zero(); (n + 2) * n],
             ncols: n + 2,
             nrows: n,
-            determinant: BigInt::from_i32(-1).unwrap(),
+            determinant: T::one().neg()
         }
     }
 
-    pub fn set(&mut self, row: usize, col: usize, value: BigInt) {
+    pub fn set(&mut self, row: usize, col: usize, value: T) {
         self.values[row * self.ncols + col] = value;
     }
 
-    pub fn entry(&self, row: usize, col: usize) -> &BigInt {
-        &self.values[row * self.ncols + col]
+    pub fn entry(&self, row: usize, col: usize) -> T {
+        self.values[row * self.ncols + col]
     }
 
     pub fn pivot(&mut self, row: usize, col: usize) {
@@ -48,7 +51,7 @@ impl Tableau {
     				if j != col {  // A[..][col] remains unchanged
 
     					//A[i,j] = (A[i,j] A[row,col] - A[i,col] A[row,j]) / det
-    					let mut tmp1 = self.entry(i, j).mul(&entry_row_col_abs);
+    					let mut tmp1 = self.entry(i, j).mul(entry_row_col_abs);
     					if nonzero {
     						let tmp2 = self.entry(row, j).mul(self.entry(i, col));
     						tmp1 = if negpivot {
@@ -57,7 +60,7 @@ impl Tableau {
     							tmp1.sub(tmp2)
     						};
     					}
-    					self.set(i, j, tmp1.div(&cur_det));
+    					self.set(i, j, tmp1.div(cur_det));
     				}
     			}
     			if nonzero && !negpivot {
@@ -102,7 +105,7 @@ impl Tableau {
 #[test]
 fn set_and_get_works() {
 
-    let mut a = Tableau::new(2, 5);
+    let mut a = Tableau::new(2);
     a.set(0, 0, BigInt::from_i32(2).unwrap());
     a.set(0, 1, BigInt::from_i32(2).unwrap());
     a.set(0, 2, BigInt::from_i32(1).unwrap());
@@ -126,7 +129,7 @@ fn set_and_get_works() {
 fn pivoting_works() {
 
     let n = 2;
-	let mut a = Tableau::new(n, n+2);
+	let mut a = Tableau::new(n);
 	for i in 0..n {
 		for j in 0..n+2 {
 			let value = BigInt::from_usize((i + 1) + j*10).unwrap();
@@ -151,7 +154,7 @@ fn pivoting_works() {
 fn negating_col_works() {
 
 	let n = 3;
-	let mut a = Tableau::new(n, n+2);
+	let mut a = Tableau::new(n);
 	for i in 0..n {
 		for j in 0..n+2 {
 			let value = BigInt::from_usize(i + j*10).unwrap();
@@ -171,7 +174,7 @@ fn negating_col_works() {
 fn positive_values_ratio_test_works() {
 
 	let n = 2;
-	let mut a = Tableau::new(n, n+2);
+	let mut a = Tableau::new(n);
 	for i in 0..n {
 		for j in 0..n+2 {
 			let value = BigInt::from_usize((i + 1) + j*10).unwrap();

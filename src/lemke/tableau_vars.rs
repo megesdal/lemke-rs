@@ -1,9 +1,11 @@
-use num::bigint::BigInt;
-use num::rational::{Ratio,BigRational};
-use num::traits::{One,Zero};
+use num::rational::Ratio;
+use num::integer::Integer;
+
+use num::traits::{One,Zero,Signed};
 
 use std::fmt::{Formatter,Debug,Error};
-use std::ops::Mul;
+use std::ops::{Neg,Mul};
+use std::clone::Clone;
 
 use super::tableau::Tableau;
 
@@ -140,7 +142,7 @@ impl TableauVariables {
         self.n + 1
     }
 
-    pub fn negate_rhs(&self, tableau: &mut Tableau) {
+    pub fn negate_rhs<T: Integer>(&self, tableau: &mut Tableau<T>) {
         tableau.negate_col(self.rhs_col())
     }
 
@@ -165,7 +167,7 @@ impl TableauVariables {
      * @param leave (r) VAR defining row of pivot element
      * @param enter (s) VAR defining col of pivot element
      */
-     pub fn pivot(&mut self, tableau: &mut Tableau, leave: &TableauVariable, enter: &TableauVariable) {
+     pub fn pivot<T: Integer+Signed>(&mut self, tableau: &mut Tableau<T>, leave: &TableauVariable, enter: &TableauVariable) {
 
      	if !self.is_basic(leave) {
      		panic!("{} is not in the basis", leave.to_string());
@@ -184,7 +186,7 @@ impl TableauVariables {
       * current basic solution turned into  solz [0..n-1]
       * note that Z(1)..Z(n)  become indices  0..n-1
       */
-     pub fn solution(&self, tableau: &Tableau, scale_factors: &Vec<BigInt>) -> Vec<BigRational> {
+     pub fn solution<T: Integer+Signed>(&self, tableau: &Tableau<T>, scale_factors: &Vec<T>) -> Vec<Ratio<T>> {
 
      	let mut z = Vec::with_capacity(self.n);
      	for i in 1..self.n + 1 {
@@ -197,24 +199,23 @@ impl TableauVariables {
       * Z(i):  scfa[i]*rhs[row] / (scfa[RHS]*det)
       * W(i):  rhs[row] / (scfa[RHS]*det)
       */
-    fn result(&self, tableau: &Tableau, scale_factors: &Vec<BigInt>, var: &TableauVariable) -> BigRational {
+    fn result<T: Integer+Signed>(&self, tableau: &Tableau<T>, scale_factors: &Vec<T>, var: &TableauVariable) -> Ratio<T> {
         if self.is_basic(var) {
 
-            let one = BigInt::one();
             let scale_factor = if var.is_z() {
-                &scale_factors[var.value]
+                scale_factors[var.value]
             } else {
-                &one
+                T::one()
             };
 
             let row = self.to_row(var);
             let col = self.rhs_col();
             let numer = scale_factor.mul(tableau.entry(row, col));
-            let denom = (&tableau.determinant).mul(&scale_factors[col]);
+            let denom = tableau.determinant.mul(scale_factors[col]);
 
             Ratio::new(numer, denom)
         } else {
-            BigRational::zero()
+            Ratio::zero()
         }
     }
 }

@@ -1,8 +1,9 @@
 use num::bigint::BigInt;
 use num::rational::{Ratio,BigRational};
-use num::traits::{One,Zero};
+use num::traits::{One,Zero,Signed};
+use num::integer::Integer;
 
-use std::ops::{Div,Rem,Mul};
+use std::ops::{Div,Rem,Mul,Neg};
 use std::cmp::{Ordering,Eq};
 
 use super::tableau::Tableau;
@@ -25,13 +26,13 @@ use super::lex_min_ratio::lexminratio;
 
 
 
-pub struct LCP {
-	m: Vec<BigRational>,
-	q: Vec<BigRational>,
+pub struct LCP<T: Integer+Signed> {
+	m: Vec<Ratio<T>>,
+	q: Vec<Ratio<T>>,
 	pub n: usize,
-    d: Vec<BigRational>,
+    d: Vec<Ratio<T>>,
 
-	pub tableau: Tableau,
+	pub tableau: Tableau<T>,
     pub vars: TableauVariables,
 
 	/* scale factors for variables z
@@ -39,12 +40,12 @@ pub struct LCP {
 	 * scfa[Z(1..n)] for cols of  M
 	 * result variables to be multiplied with these
 	 */
-	scale_factors: Vec<BigInt>,
+	scale_factors: Vec<T>,
 }
 
-impl LCP {
+impl<T: Integer+Signed> LCP<T> {
 
-    fn new(m: Vec<BigRational>, q: Vec<BigRational>) -> LCP {
+    fn new(m: Vec<Ratio<T>>, q: Vec<Ratio<T>>) -> LCP<T> {
 
     	if m.len()%q.len() != 0 {
     		panic!("M and q are not right dimensions");  // TODO: return Result instead
@@ -62,11 +63,11 @@ impl LCP {
     	let mut lcp = LCP {
             m: m,
             q: q,
-            d: vec![BigRational::zero(); nrows],
+            d: vec![Ratio::zero(); nrows],
             n: nrows,
             vars: TableauVariables::new(nrows),
             tableau: Tableau::new(nrows),
-        	scale_factors: vec![BigInt::zero(); nrows+2],
+        	scale_factors: vec![T::zero(); nrows+2],
         };
     	lcp.init_tableau();
 
@@ -111,17 +112,18 @@ impl LCP {
      * compute lcm  of denominators for  col  j  of  A
      * Necessary for converting fractions to integers and back again
      */
-    fn compute_scale_factor<'a, F>(&'a self, n: usize, vec: F) -> BigInt where F : Fn(usize) -> &'a BigRational {
+    fn compute_scale_factor<'a, F>(&'a self, n: usize, vec: F) -> T where F : Fn(usize) -> &'a Ratio<T> {
 
-    	let mut lcm = BigInt::one();
+    	let mut lcm = T::one();
     	for i in 0..n {
             let rat = vec(i);
-            let gcd = LCP::euclid_gcd(&lcm, rat.denom());
+            let gcd = lcm.gcd(rat.denom());
+			//let gcd = LCP::euclid_gcd(&lcm, rat.denom());
     		lcm = lcm.div(&gcd).mul(rat.denom());
     	}
     	lcm
     }
-
+/*
     fn euclid_gcd(a: &BigInt, b: &BigInt) -> BigInt {
         let mut a = a.clone();
         let mut b = b.clone();
@@ -132,9 +134,9 @@ impl LCP {
         }
         a
     }
-
+*/
     // TODO: convert this to a builder pattern?
-    pub fn add_covering_vector(&mut self, d: Vec<BigRational>) {
+    pub fn add_covering_vector(&mut self, d: Vec<Ratio<T>>) {
 
         self.d = d;
 
@@ -155,7 +157,7 @@ impl LCP {
  * and that q[i] < 0  implies  d[i] > 0
  */
  // TODO: don't error on trivial solution... just return it
-fn validate_inputs(q: &Vec<BigRational>, d: &Vec<BigRational>) {
+fn validate_inputs<T: Integer+Signed>(q: &Vec<Ratio<T>>, d: &Vec<Ratio<T>>) {
 
 	let mut is_q_pos = true;
 	for i in 0..q.len() {
@@ -174,14 +176,14 @@ fn validate_inputs(q: &Vec<BigRational>, d: &Vec<BigRational>) {
 	}
 }
 
-fn lemke(m: Vec<BigRational>, q: Vec<BigRational>, d: Vec<BigRational>) -> Vec<BigRational> {
+fn lemke<T: Integer+Signed>(m: Vec<Ratio<T>>, q: Vec<Ratio<T>>, d: Vec<Ratio<T>>) -> Vec<Ratio<T>> {
 	lemke_with_pivot_max(m, q, d, 0)
 }
 
 // LemkeWithPivotMax solves the linear complementarity probelm via Lemke's algorithm.
 // It will only perform up to maxCount pivots before exiting.
 // TODO: ray termination...
-fn lemke_with_pivot_max(m: Vec<BigRational>, q: Vec<BigRational>, d: Vec<BigRational>, pivot_max: usize) -> Vec<BigRational> {
+fn lemke_with_pivot_max<T: Integer+Signed>(m: Vec<Ratio<T>>, q: Vec<Ratio<T>>, d: Vec<Ratio<T>>, pivot_max: usize) -> Vec<Ratio<T>> {
 
 	validate_inputs(&q, &d);
 

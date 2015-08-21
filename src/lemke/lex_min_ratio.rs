@@ -2,7 +2,9 @@ use super::tableau::Tableau;
 use super::tableau_vars::{TableauVariable,TableauVariables};
 
 use std::cmp::Ordering;
-use num::traits::Signed;
+use std::ops::Neg;
+use num::traits::{One,Zero,Signed};
+use num::integer::Integer;
 
 #[cfg(test)] use num::bigint::BigInt;
 #[cfg(test)] use num::traits::FromPrimitive;
@@ -18,7 +20,7 @@ use num::traits::Signed;
  * basis, but the lex-minratio test is performed fully,
  * so the returned value might not be the index of  z0
  */
-pub fn lexminratio(tableau: &Tableau, vars: &TableauVariables, enter: &TableauVariable) -> (TableauVariable, bool) {
+pub fn lexminratio<T: Integer+Signed>(tableau: &Tableau<T>, vars: &TableauVariables, enter: &TableauVariable) -> (TableauVariable, bool) {
 
 	let mut leave_candidate_rows = Vec::new();
 
@@ -57,7 +59,7 @@ pub fn lexminratio(tableau: &Tableau, vars: &TableauVariables, enter: &TableauVa
  * in the tableau.  That test has an easy known result if
  * the test column is basic or equal to the entering variable.
  */
-fn process_candidates(tableau: &Tableau, vars: &TableauVariables, enter_col: usize, leave_candidate_rows: &mut Vec<usize>) -> bool {
+fn process_candidates<T: Integer+Signed>(tableau: &Tableau<T>, vars: &TableauVariables, enter_col: usize, leave_candidate_rows: &mut Vec<usize>) -> bool {
 
 	let z0_can_leave = process_rhs(tableau, vars, enter_col, leave_candidate_rows);
     let mut j = 1;
@@ -95,7 +97,7 @@ fn remove_row(leave_candidate_rows: &mut Vec<usize>, row_to_rm: usize) {
 	leave_candidate_rows.swap_remove(rm_idx);
 }
 
-fn process_rhs(tableau: &Tableau, vars: &TableauVariables, enter_col: usize, leave_candidate_rows: &mut Vec<usize>) -> bool {
+fn process_rhs<T: Integer+Signed>(tableau: &Tableau<T>, vars: &TableauVariables, enter_col: usize, leave_candidate_rows: &mut Vec<usize>) -> bool {
 
 	take_min_ratio_rows(tableau, enter_col, vars.rhs_col(), leave_candidate_rows);
 
@@ -114,7 +116,7 @@ fn process_rhs(tableau: &Tableau, vars: &TableauVariables, enter_col: usize, lea
 	z0_can_leave
 }
 
-fn take_min_ratio_rows(tableau: &Tableau, enter_col: usize, test_col: usize, leave_candidate_rows: &mut Vec<usize>) {
+fn take_min_ratio_rows<T: Integer+Signed>(tableau: &Tableau<T>, enter_col: usize, test_col: usize, leave_candidate_rows: &mut Vec<usize>) {
 
 	let mut num_min_candidates = 0;
 	for i in 1..leave_candidate_rows.len() {  // investigate remaining candidates
@@ -145,7 +147,7 @@ fn take_min_ratio_rows(tableau: &Tableau, enter_col: usize, test_col: usize, lea
 #[test]
 fn take_min_ratio_elems_works() {
 
-	let mut a = Tableau::new(2, 4);
+	let mut a = Tableau::new(2);
 	a.set(0, 0, BigInt::from_i32(2).unwrap());
 	a.set(0, 1, BigInt::from_i32(2).unwrap());
 	a.set(0, 2, BigInt::from_i32(1).unwrap());
