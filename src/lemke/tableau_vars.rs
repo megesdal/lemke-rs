@@ -202,7 +202,7 @@ impl TableauVariables {
 
             let one = BigInt::one();
             let scale_factor = if var.is_z() {
-                &scale_factors[var.idx]
+                &scale_factors[var.value]
             } else {
                 &one
             };

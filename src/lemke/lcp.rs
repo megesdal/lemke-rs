@@ -65,7 +65,7 @@ impl LCP {
             d: vec![BigRational::zero(); nrows],
             n: nrows,
             vars: TableauVariables::new(nrows),
-            tableau: Tableau::new(nrows, nrows+2),
+            tableau: Tableau::new(nrows),
         	scale_factors: vec![BigInt::zero(); nrows+2],
         };
     	lcp.init_tableau();
@@ -138,9 +138,7 @@ impl LCP {
 
         self.d = d;
 
-    	let scale_factor = self.compute_scale_factor(self.n, |i: usize| {
-            &self.d[i]
-        });
+    	let scale_factor = self.compute_scale_factor(self.n, |i| &self.d[i]);
 
     	for i in 0..self.tableau.nrows {
     		let rat = &self.d[i];
