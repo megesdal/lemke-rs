@@ -3,10 +3,10 @@ use num::rational::{Ratio,BigRational};
 use num::traits::{One,Zero};
 
 use std::ops::{Div,Rem,Mul};
-use std::cmp::{Ordering,Eq};
+use std::cmp::{Ordering};
 
 use super::tableau::Tableau;
-use super::tableau_vars::{TableauVariable,TableauVariables};
+use super::tableau_vars::{TableauVariables};
 use super::lex_min_ratio::lexminratio;
 
 #[cfg(test)] use num::traits::{FromPrimitive,ToPrimitive};

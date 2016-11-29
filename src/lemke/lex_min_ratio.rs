@@ -6,7 +6,6 @@ use num::traits::Signed;
 
 #[cfg(test)] use num::bigint::BigInt;
 #[cfg(test)] use num::traits::FromPrimitive;
-#[cfg(test)] use time;
 
 /*
  * minVar
@@ -145,7 +144,7 @@ fn take_min_ratio_rows(tableau: &Tableau, enter_col: usize, test_col: usize, lea
 #[test]
 fn take_min_ratio_elems_works() {
 
-	let mut a = Tableau::new(2, 4);
+	let mut a = Tableau::new(2);
 	a.set(0, 0, BigInt::from_i32(2).unwrap());
 	a.set(0, 1, BigInt::from_i32(2).unwrap());
 	a.set(0, 2, BigInt::from_i32(1).unwrap());
@@ -183,7 +182,7 @@ fn lexminvar_works() {
     let n = 2;
 	let vars = TableauVariables::new(n);
 
-    let mut a = Tableau::new(n, n+2);
+    let mut a = Tableau::new(n);
 	a.set(0, 0, BigInt::from_i32(2).unwrap());
 	a.set(0, 1, BigInt::from_i32(2).unwrap());
 	a.set(0, 2, BigInt::from_i32(1).unwrap());
